@@ -2,6 +2,7 @@
 
 library(shiny)
 library(shinyWidgets)
+library(ltm)
 
 ui <- fluidPage(
   
@@ -85,7 +86,7 @@ ui <- fluidPage(
 server <- function(input, output, session){
 
   values <- reactiveValues()
-  values$df <- df
+
   observe({
 
     input$go
@@ -115,7 +116,13 @@ server <- function(input, output, session){
                                 c = runif(input$k, 0, input$c),
                                 d = runif(input$k, input$d, 1)
                                 )
+
     })
+
+    data <- values$df 
+    model.Rasch <<- rasch(data)
+    model.2PL <<- ltm(data ~ z1)
+    model.3PL <<- tpm(data)
 
   })
 
@@ -130,28 +137,20 @@ server <- function(input, output, session){
 
 
   output$text1 <- renderPrint({
+   
+    input$go
 
-    data <- values$df
-    require(ltm)
- 
-    model.Rasch <<- rasch(data)
-    model.2PL <<- ltm(data ~ z1)
-    model.3PL <<- tpm(data)
-
-    if(input$model == "rasch"){ print(model.Rasch) } else if (input$model == "2pl"){
-        print(model.2PL)} else {print(model.3PL)}
+    if(input$model == "rasch"){ print(model.Rasch) 
+      } else if (input$model == "2pl"){
+      print(model.2PL)} else {
+      print(model.3PL)}
 
   })
 
   
   output$text2 <- renderPrint({
 
-    data <- values$df
-    require(ltm)
- 
-    model.Rasch <<- rasch(data)
-    model.2PL <<- ltm(data ~ z1)
-    model.3PL <<- tpm(data)
+    input$go
 
     print(anova(model.Rasch, model.2PL))
     print(anova(model.Rasch, model.3PL))

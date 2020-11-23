@@ -49,7 +49,7 @@ ui <- fluidPage(
         hr(),
         p(em("With this application; you can generate a 1-0 dataset and download it. 
            Also, you can estimate the IRT item parameters and compare the models each other.
-           In order to use this application, 'shiny' and 'shinyWidgets' and 'ltm' packages must be installed in yoru computer.")),
+           In order to use this application, 'shiny' and 'shinyWidgets' and 'ltm' packages must be installed in your computer.")),
         br(),
         p(h4(strong("Item Parameters:", style = "color:darkgreen"))),
         p("You can define the interval of different parameters according to your preference of the model."),

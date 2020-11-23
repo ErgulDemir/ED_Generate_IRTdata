@@ -29,7 +29,7 @@ ui <- fluidPage(
     hr(),
 
     radioButtons("model", "IRT Logistic Models:", 
-                 c("Rasch" = "rasch", "2PL" = "2pl", "3PL" = "3pl"),
+                 c("Rasch" = "rasch", "1PL" = "1pl", "2PL" = "2pl", "3PL" = "3pl"),
                  selected = "2pl", width = 150),
     hr(),
 
@@ -48,7 +48,8 @@ ui <- fluidPage(
         p(h4(strong("How to use this application:", style = "color:darkgreen"))),
         hr(),
         p(em("With this application; you can generate a 1-0 dataset and download it. 
-           Also, you can estimate the IRT item parameters and compare the models each other.")),
+           Also, you can estimate the IRT item parameters and compare the models each other.
+           In order to use this application, 'shiny' and 'shinyWidgets' and 'ltm' packages must be installed in yoru computer.")),
         br(),
         p(h4(strong("Item Parameters:", style = "color:darkgreen"))),
         p("You can define the interval of different parameters according to your preference of the model."),
@@ -58,7 +59,7 @@ ui <- fluidPage(
                          You can define the lower and upper limits of this parameter."),
         p(strong("c:"), "Indicator of poseudo-quessing for 3PL and 4PL models. Recommended lower than .35.
                          You can define the upper limit of this parameter."),
-        p(strong("d:"), "Indicator of upper-possibility level for using 4PL models. 
+        p(strong("d:"), "Indicator of upper-possibility level which is under 1 for using 4PL models. 
                          In this application, as a limitation, it can't be provided 4PL estimations.
                          You can define the lower limit of this parameter."),
         br(),
@@ -120,7 +121,8 @@ server <- function(input, output, session){
     })
 
     data <- values$df 
-    model.Rasch <<- rasch(data)
+    model.Rasch <<- rasch(data, constraint = cbind(ncol(data) + 1, 1))
+    model.1PL <<- rasch(data)
     model.2PL <<- ltm(data ~ z1)
     model.3PL <<- tpm(data)
 
@@ -140,7 +142,10 @@ server <- function(input, output, session){
    
     input$go
 
-    if(input$model == "rasch"){ print(model.Rasch) 
+    if(input$model == "rasch"){ 
+      print(model.Rasch) 
+      } else if (input$model == "1pl"){
+      print(model.1PL)
       } else if (input$model == "2pl"){
       print(model.2PL)} else {
       print(model.3PL)}

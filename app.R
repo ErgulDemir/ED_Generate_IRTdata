@@ -43,13 +43,16 @@ ui <- fluidPage(
     tabsetPanel(type = "pills",
       tabPanel("Dataset", tableOutput("table1")),
       tabPanel("Item Parameters", verbatimTextOutput("text1")),
-      tabPanel("Model Comparisions", verbatimTextOutput("text2")),     
+      tabPanel("Test Information", 
+        plotOutput("plot1", height = 600),
+        verbatimTextOutput("text2")),
+      tabPanel("Model Comparisions", verbatimTextOutput("text3")),     
       tabPanel("Help",
         p(h4(strong("How to use this application:", style = "color:darkgreen"))),
         hr(),
         p(em("With this application; you can generate a 1-0 dataset and download it. 
            Also, you can estimate the IRT item parameters and compare the models each other.
-           In order to use this application, 'shiny' and 'shinyWidgets' and 'ltm' packages must be installed in your computer.")),
+           In order to use this application, 'shiny' and 'shinyWidgets' and 'ltm' packages must be installed in yoru computer.")),
         br(),
         p(h4(strong("Item Parameters:", style = "color:darkgreen"))),
         p("You can define the interval of different parameters according to your preference of the model."),
@@ -76,6 +79,8 @@ ui <- fluidPage(
         p(strong("Dataset:"), "You can display the first 25 rows of the generated dataset in this panel."),
         p(strong("Item Parameters:"), "According to your selections, you can display the estimations of the item parameters in this panel. 
                                        These estimations were obtained by using 'ltm' package from R."),
+        p(strong("Test Information:"), "According to the model selected, you can display the graph of 'the test information curve' with 'the standard error of theta estimation.
+                                        Also you can see the amount of the total information between theta interval [-3, 3]."), 
         p(strong("Model Comparisions:"), "You can display the ANOVA results for model comparisions in this panel.")   
       
       )
@@ -125,6 +130,16 @@ server <- function(input, output, session){
     model.1PL <<- rasch(data)
     model.2PL <<- ltm(data ~ z1)
     model.3PL <<- tpm(data)
+    
+    plot.Rasch <<- plot(model.Rasch, type = "IIC", items = 0, plot = FALSE)
+    plot.1PL <<- plot(model.1PL, type = "IIC", items = 0, plot = FALSE)
+    plot.2PL <<- plot(model.2PL, type = "IIC", items = 0, plot = FALSE)
+    plot.3PL <<- plot(model.3PL, type = "IIC", items = 0, plot = FALSE)
+
+    inf.rasch <<- information(model.Rasch, c(-3, 3))
+    inf.1PL <<- information(model.1PL, c(-3, 3))
+    inf.2PL <<- information(model.2PL, c(-3, 3))
+    inf.3PL <<- information(model.3PL, c(-3, 3))
 
   })
 
@@ -143,22 +158,63 @@ server <- function(input, output, session){
     input$go
 
     if(input$model == "rasch"){ 
-      print(model.Rasch) 
+      model.Rasch 
       } else if (input$model == "1pl"){
-      print(model.1PL)
+      model.1PL
       } else if (input$model == "2pl"){
-      print(model.2PL)} else {
-      print(model.3PL)}
+      model.2PL
+      } else {
+      model.3PL }
 
   })
 
   
+  output$plot1 <- renderPlot({
+    
+    if(input$model == "rasch"){ 
+      plot.model <- plot.Rasch 
+      names <- paste("Test Information for Rasch Model")
+      } else if (input$model == "1pl"){
+      plot.model <- plot.1PL 
+      names <- paste("Test Information for 1PL Model")
+      } else if (input$model == "2pl"){
+      plot.model <- plot.2PL
+      names <- paste("Test Information for 2PL Model")
+      } else {
+      plot.model <- plot.3PL
+      names <- paste("Test Information for 3PL Model") 
+      }
+
+    plot(plot.model[,1], plot.model[,2], type = "l", lwd = 2,
+      ylim = c(0, max(plot.model[,2]) + 1),
+      xlab = "Theta", ylab = "Information",
+      main = names)
+    lines(plot.model[,1], 1 /sqrt(plot.model[,2]), type = "l", lty = 2, lwd = 2)
+
+  })
+
+
   output$text2 <- renderPrint({
+
+    if(input$model == "rasch"){ 
+      inf.rasch 
+      } else if (input$model == "1pl"){
+      inf.1PL 
+      } else if (input$model == "2pl"){
+      inf.2PL
+      } else {
+      inf.3PL
+      }
+
+  })
+   
+  
+  output$text3 <- renderPrint({
 
     input$go
 
-    print(anova(model.Rasch, model.2PL))
-    print(anova(model.Rasch, model.3PL))
+    print(anova(model.Rasch, model.1PL))
+    print(anova(model.1PL, model.2PL))
     print(anova(model.2PL, model.3PL))
 
   })
